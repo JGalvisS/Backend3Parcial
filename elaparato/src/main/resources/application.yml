@@ -28,3 +28,9 @@ logging:
     org.springframework.boot.autoconfigure: DEBUG
 server:
   port: 8082
+dh:
+  keycloack:
+    serverUrl: http://localhost:8080
+    realm: elAparatoGalvis
+    clientId: el-aparato
+    clientSecret: 3495CExQactKpG4XGbPTjtTgG2CfNozX

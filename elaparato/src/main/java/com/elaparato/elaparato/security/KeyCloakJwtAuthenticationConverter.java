@@ -9,18 +9,24 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class KeyCloakJwtAuthenticationConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
     private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
-    private static Collection<? extends GrantedAuthority> extractResourceRoles(final Jwt jwt) throws JsonProcessingException {
+    //
+    private final ObjectMapper objectMapper;
+
+    public KeyCloakJwtAuthenticationConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+    //
+
+    private Collection<? extends GrantedAuthority> extractResourceRoles(final Jwt jwt) throws JsonProcessingException {
         Set<GrantedAuthority> resourcesRoles = new HashSet<>();
-        ObjectMapper objectMapper = new ObjectMapper();
+        //ObjectMapper objectMapper = new ObjectMapper();
         JsonNode claims = objectMapper.readTree(objectMapper.writeValueAsString(jwt.getClaims()));
 
         resourcesRoles.addAll(extractRoles("resource_access", claims));
