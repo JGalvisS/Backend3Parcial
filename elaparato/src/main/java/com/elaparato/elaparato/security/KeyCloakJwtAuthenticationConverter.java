@@ -16,21 +16,21 @@ import java.util.stream.Stream;
 public class KeyCloakJwtAuthenticationConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
     private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
-    //
+
     private final ObjectMapper objectMapper;
 
     public KeyCloakJwtAuthenticationConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
-    //
+
 
     private Collection<? extends GrantedAuthority> extractResourceRoles(final Jwt jwt) throws JsonProcessingException {
         Set<GrantedAuthority> resourcesRoles = new HashSet<>();
-        //ObjectMapper objectMapper = new ObjectMapper();
         JsonNode claims = objectMapper.readTree(objectMapper.writeValueAsString(jwt.getClaims()));
 
         resourcesRoles.addAll(extractRoles("resource_access", claims));
-        resourcesRoles.addAll(extractRolesRealmAccess("realm_access", objectMapper.readTree(objectMapper.writeValueAsString(jwt)).get("claims")));
+        resourcesRoles.addAll(extractRolesRealmAccess("realm_access", claims));
+       // resourcesRoles.addAll(extractRolesRealmAccess("realm_access", objectMapper.readTree(objectMapper.writeValueAsString(jwt)).get("claims")));
         return resourcesRoles;
     }
 
@@ -53,13 +53,16 @@ public class KeyCloakJwtAuthenticationConverter implements Converter<Jwt, Collec
                 .elements()
                 .forEachRemaining(r -> rolesWithPrefix.add("ROLE_" + r.asText()));
 
-        final List<GrantedAuthority> authorityList =
+        /*final List<GrantedAuthority> authorityList =
                 AuthorityUtils.createAuthorityList(rolesWithPrefix.toArray(new String[0]));
 
         return authorityList;
+         */
+        return AuthorityUtils.createAuthorityList(rolesWithPrefix.toArray(new String[0]));
+
     }
 
-    @Override
+   /* @Override
     public Collection<GrantedAuthority> convert(final Jwt source) {
         Collection<GrantedAuthority> authorities;
         try {
@@ -68,6 +71,15 @@ public class KeyCloakJwtAuthenticationConverter implements Converter<Jwt, Collec
             throw new RuntimeException("Error extracting roles from JWT", e);
         }
         return authorities;
+    }*/
+
+    @Override
+    public Collection<GrantedAuthority> convert(final Jwt source) {
+        try {
+            return getGrantedAuthorities(source);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error de extraccion de JWT", e);
+        }
     }
 
     private Collection<GrantedAuthority> getGrantedAuthorities(Jwt source) throws JsonProcessingException {

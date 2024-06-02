@@ -12,10 +12,7 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-                /*.authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/public/**").permitAll() // Permitir acceso público a las rutas /public/**
-                        .anyExchange().authenticated() // Todas las demás rutas requieren autenticación
-                )*/
+
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
                 )

@@ -4,9 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
@@ -24,19 +24,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.anyRequest().authenticated()
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/productos/**").hasAuthority("ROLE_repositor")
+                        .requestMatchers("/productos/**").hasAuthority("ROLE_admin")
+                        .requestMatchers("/ventas/**").hasAuthority("ROLE_admin")
+                        .requestMatchers("/ventas/**").hasAuthority("ROLE_vendedor")
+                        .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
 
+                //.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
         return http.build();
     }
 
-    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+   /* private JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KeyCloakJwtAuthenticationConverter(objectMapper));
         return jwtAuthenticationConverter;
-    }
+    }*/
+   @Bean
+   public JwtAuthenticationConverter jwtAuthenticationConverter() {
+       JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+       grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+
+       JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+       jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+       return jwtAuthenticationConverter;
+   }
 }
