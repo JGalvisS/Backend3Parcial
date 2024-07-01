@@ -18,9 +18,9 @@ public class ProductoService implements IProductoService{
     }
 
     @Override
-    public void saveProducto(Producto prod) {
+    public Producto saveProducto(Producto prod) {
 
-        prodRepo.save(prod);
+        return prodRepo.save(prod);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ProductoService implements IProductoService{
 
     @Override
     public void editProducto(Producto prod) {
-        this.saveProducto(prod);
+         this.saveProducto(prod);
     }
 
 }

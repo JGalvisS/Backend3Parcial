@@ -20,17 +20,21 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-  sql:
-    init:
-      data-location: classpath:data.sql
+#  sql:
+#    init:
+#      data-location: classpath:data.sql
 logging:
   level:
-    org.springframework.boot.autoconfigure: DEBUG
+    org:
+      springframework:
+        security: DEBUG
 server:
   port: 8082
+#  servlet:
+#    context-path: /elaparato/
 dh:
-  keycloack:
+  keycloak:
     serverUrl: http://localhost:8080
     realm: elAparatoGalvis
-    clientId: el-aparato
-    clientSecret: 3495CExQactKpG4XGbPTjtTgG2CfNozX
+    clientId: client-usuarios
+    clientSecret: PloSR2vzr01pKZZYOCN9E2GDqHqpxsjW

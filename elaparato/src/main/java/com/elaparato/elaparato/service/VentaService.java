@@ -27,9 +27,8 @@ public class VentaService implements IVentaService{
         return ventaRepo.findAll();
     }
 
-    //Transactional asegura que todas las operaciones dentro del método son exitosas, la transacción se compromete; si alguna falla, la transacción se revierte
+
     @Override
-    @Transactional
     public void saveVenta(Venta vent) {
 
         List<Producto> productos = vent.getListaProductos();
