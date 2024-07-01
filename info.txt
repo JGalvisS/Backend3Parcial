@@ -1,4 +1,9 @@
 Creacion de los roles en cliente y reaino segun lo previsto.
 Opcion de regitro en keycloack configurado correctamente.
 Todos los endpoints y metodos funcionales.
-No logre hacer con exito el manejo de roles por lo que cualquier usuario logueado puede acceder a todos los enpoints. 
+Manejo de roles correctamenete: vendedor, repositor y admin
+
+Obtener ventas http://localhost:9090/ventas/getall 
+Obtener productos http://localhost:9090/productos/getall
+Obtener usuarios http://localhost:9090/users/getall
+Salir http://localhost:9090/logout
