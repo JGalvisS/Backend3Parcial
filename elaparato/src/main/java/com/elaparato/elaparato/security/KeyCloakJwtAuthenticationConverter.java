@@ -1,93 +1,62 @@
 package com.elaparato.elaparato.security;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class KeyCloakJwtAuthenticationConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
-    private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
-
-    private final ObjectMapper objectMapper;
-
-    public KeyCloakJwtAuthenticationConverter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
-
-    private Collection<? extends GrantedAuthority> extractResourceRoles(final Jwt jwt) throws JsonProcessingException {
-        Set<GrantedAuthority> resourcesRoles = new HashSet<>();
-        JsonNode claims = objectMapper.readTree(objectMapper.writeValueAsString(jwt.getClaims()));
-
-        resourcesRoles.addAll(extractRoles("resource_access", claims));
-        resourcesRoles.addAll(extractRolesRealmAccess("realm_access", claims));
-       // resourcesRoles.addAll(extractRolesRealmAccess("realm_access", objectMapper.readTree(objectMapper.writeValueAsString(jwt)).get("claims")));
-        return resourcesRoles;
-    }
-
-    private static Collection<? extends GrantedAuthority> extractRoles(String route, JsonNode jwt) {
-        Set<String> rolesWithPrefix = new HashSet<>();
-
-        jwt.path(route)
-                .elements()
-                .forEachRemaining(e -> e.path("roles")
-                        .elements()
-                        .forEachRemaining(r -> rolesWithPrefix.add("ROLE_" + r.asText())));
-
-        return AuthorityUtils.createAuthorityList(rolesWithPrefix.toArray(new String[0]));
-    }
-    private static List<GrantedAuthority> extractRolesRealmAccess(String route, JsonNode jwt) {
-        Set<String> rolesWithPrefix = new HashSet<>();
-
-        jwt.path(route)
-                .path("roles")
-                .elements()
-                .forEachRemaining(r -> rolesWithPrefix.add("ROLE_" + r.asText()));
-
-        /*final List<GrantedAuthority> authorityList =
-                AuthorityUtils.createAuthorityList(rolesWithPrefix.toArray(new String[0]));
-
-        return authorityList;
-         */
-        return AuthorityUtils.createAuthorityList(rolesWithPrefix.toArray(new String[0]));
-
-    }
-
-   /* @Override
-    public Collection<GrantedAuthority> convert(final Jwt source) {
-        Collection<GrantedAuthority> authorities;
-        try {
-            authorities = this.getGrantedAuthorities(source);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error extracting roles from JWT", e);
-        }
-        return authorities;
-    }*/
+    public static final String REALM_ROLES_CLAIM = "realm_access";
+    public static final String CLIENT_ROLES_CLAIM = "resource_access";
+    public static final String SCOPE_CLAIM = "scope";
 
     @Override
-    public Collection<GrantedAuthority> convert(final Jwt source) {
-        try {
-            return getGrantedAuthorities(source);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error de extraccion de JWT", e);
+    public Collection<GrantedAuthority> convert(Jwt source) {
+
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+        Map<String, Object> realmAccessRoles = (Map<String, Object>) source.getClaims().get(REALM_ROLES_CLAIM);
+        if (realmAccessRoles!= null && !realmAccessRoles.isEmpty()) {
+            authorities.addAll(extractRoles(realmAccessRoles));
         }
+
+        Map<String, Object> clientAccessRoles = (Map<String, Object>) source.getClaims().get(CLIENT_ROLES_CLAIM);
+        if (clientAccessRoles != null && !clientAccessRoles.isEmpty()) {
+            clientAccessRoles.forEach((client, roles) -> {
+                Map<String, Object> clientRoles = (Map<String, Object>) roles;
+                if (clientRoles != null && !clientRoles.isEmpty()) {
+                    authorities.addAll(extractRoles(clientRoles));
+                }
+            });
+        }
+
+        String scopes= (String) source.getClaims().get(SCOPE_CLAIM);
+        if (scopes != null && !scopes.isEmpty()) {
+            authorities.addAll(extractScopes(scopes));
+        }
+
+        return authorities;
     }
 
-    private Collection<GrantedAuthority> getGrantedAuthorities(Jwt source) throws JsonProcessingException {
-        return Stream.concat(
-                defaultGrantedAuthoritiesConverter.convert(source).stream(),
-                extractResourceRoles(source).stream()
-        ).collect(Collectors.toSet());
+    private static Collection<GrantedAuthority> extractRoles(Map<String, Object> realmAccessRoles) {
+        return ((List<String>) realmAccessRoles.get("roles"))
+                .stream()
+                .map(roleName -> "ROLE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
+
+    private static Collection<GrantedAuthority> extractScopes(String scopes) {
+        return Arrays.stream(scopes.split(" ")).toList()
+                .stream().map(roleName -> "SCOPE_" + roleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
 }
 
 

@@ -1,0 +1,7 @@
+
+Â
+java:S6204"zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(‡ÍßÙşÿÿÿÿ8‡«“ü†2J$da5e4ba8-6724-4ce0-8566-03e125de4550
+½
+java:S6204."zReplace this usage of 'Stream.collect(Collectors.toList())' with 'Stream.toList()' and ensure that the list is unmodified.(ª™¨¹8â‘—ı†2J$4d4fc541-9331-4419-a0fe-7810f43f44b9
+’
+java:S1128"ORemove this unused import 'org.springframework.beans.factory.annotation.Value'.(ìø›8‹üœı†2J$ae79252b-6da4-43f9-946e-9b844e60e6b9
